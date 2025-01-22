@@ -2,17 +2,13 @@
 
 This project demonstrates how to deploy a web server that hosts a static website using AWS services like EC2, S3, and CloudFormation. It includes infrastructure automation, IAM role configuration, and serving content via Apache.
 
----
-
 ## **Overview**
 This project automates the deployment of:
 1. An **EC2 instance** running Apache as a web server.
 2. An **S3 bucket** to store static files (like `index.html`).
 3. IAM roles and policies to allow secure access between EC2 and S3.
 
-The static website is hosted on the EC2 instance, with content sourced from the S3 bucket. Explore the web server [here](http://ec2-44-211-127-127.compute-1.amazonaws.com)
-
----
+The static website is hosted on the EC2 instance, with content sourced from the S3 bucket. Explore the web server [here](http://ec2-44-211-127-127.compute-1.amazonaws.com).
 
 ## **Architecture**
 
@@ -27,9 +23,7 @@ The static website is hosted on the EC2 instance, with content sourced from the 
    - Allows HTTP (port 80) and SSH (port 22) traffic to the EC2 instance.
 
 Here is the architecture diagram generated from `Infrastructure Composer` in `AWS CloudFormation`.
-![Architecture Diagram](/architecture.png)
-
----
+   ![Architecture Diagram](/architecture.png)
 
 ## **Setup Instruction**
 
@@ -53,12 +47,8 @@ Here is the architecture diagram generated from `Infrastructure Composer` in `AW
 1. Open the EC2 public DNS in your browser.
 2. Verify that the web server runs the static website is displayed.
 
----
-
 ### **Website Output**
    ![Website Output Screenshot](/website.png)
-
----
 
 ## Connect with me 
 
