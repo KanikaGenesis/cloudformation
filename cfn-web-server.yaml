@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Deploy a web server that fetches files from S3
+
+Resources:
+  # S3 Bucket to Store HTML Files
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: cfn-web-server-bucket 
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:  # Allow public access if the bucket policy permits
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+
+  # S3 Bucket Policy to Allow Public Access
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Sub "${S3Bucket.Arn}/*"
+
+  # IAM Role for EC2 Instance
+  EC2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+
+  # IAM Instance Profile for EC2
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref EC2InstanceRole
+
+  # Security Group for EC2 Instance
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP and SSH traffic
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0  # Allow SSH access
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0  # Allow HTTP access
+
+  # EC2 Instance to Serve the Web Page
+  WebServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0df8c184d5f6ae949  # Replace with a valid Amazon Linux 2 AMI ID for your region
+      SecurityGroupIds:
+        - !Ref WebServerSecurityGroup
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          yum update -y
+          yum install -y httpd aws-cli
+          systemctl start httpd
+          systemctl enable httpd
+          aws s3 cp s3://cfn-web-server-bucket/index.html /var/www/html/index.html
+      Tags:
+        - Key: Name
+          Value: WebServerWithS3
+
+Outputs:
+  WebsiteURL:
+    Description: Public URL of the EC2 web server
+    Value: !Sub "http://${WebServerInstance.PublicDnsName}"
+  
+  S3BucketName:
+    Description: Name of the S3 bucket
+    Value: !Ref S3Bucket
